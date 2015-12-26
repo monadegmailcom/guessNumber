@@ -14,10 +14,7 @@ mid <- function()
 }
 
 shinyServer(function(input, output) {
-    output$question <- renderPrint({
-      input$reset
-      input$greaterEqual
-      input$less
+    update <- reactive({
       if (resetCount != input$reset)
       {
         resetCount <<- input$reset
@@ -25,22 +22,28 @@ shinyServer(function(input, output) {
         estimator <<- ceiling(log2( input$maxNumber))
         guessMin <<- 1
         numberOfGuesses <<- 0
-        cat( "Is your number less then", mid(), "?")
+#        cat( "Is your number less then", mid(), "?")
       }
-      else if (resetCount != 0)
+    })
+    output$question <- renderPrint({
+      update()
+      input$greaterEqual
+      input$less
+      if (resetCount != 0)
       {
         if (lessCount != input$less)
         {
           lessCount <<- input$less
           guessMin <<- mid()
+          numberOfGuesses <<- numberOfGuesses + 1
         }
         else if (greaterCount != input$greaterEqual)
         {
           greaterCount <<- input$greaterEqual
           guessMax <<- mid()
+          numberOfGuesses <<- numberOfGuesses + 1
         }
-        
-        numberOfGuesses <<- numberOfGuesses + 1
+
         if (guessMax-guessMin <=1)
           cat("Your number is",guessMin)
         else
@@ -49,7 +52,7 @@ shinyServer(function(input, output) {
     })
     
     output$guessCount <- renderPrint({
-      input$reset
+      update()
       input$greaterEqual
       input$less
       cat( "My guesses", numberOfGuesses, "of", estimator)
